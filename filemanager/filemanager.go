@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"time"
 )
 
 type FileManager struct {
@@ -12,12 +13,14 @@ type FileManager struct {
 	OutputFilePath string
 }
 
-func ReadLines(path string) ([]string, error) {
-	file, err := os.Open(path)
+func (fm FileManager) ReadLines() ([]string, error) {
+	file, err := os.Open(fm.InputFilePath)
 
 	if err != nil {
 		return nil, errors.New("Failed to open file.")
 	}
+
+	defer file.Close()
 
 	var lines []string
 
@@ -28,20 +31,20 @@ func ReadLines(path string) ([]string, error) {
 
 	err = scanner.Err()
 	if err != nil {
-		file.Close()
 		return nil, errors.New("Failed to read line in file.")
 	}
 
-	file.Close()
 	return lines, nil
 }
 
 func (fm FileManager) WriteResult(data interface{}) error {
 	file, err := os.Create(fm.OutputFilePath)
-
+	defer file.Close()
 	if err != nil {
 		return errors.New("Failed to create file.")
 	}
+
+	time.Sleep(2 * time.Second)
 
 	encoder := json.NewEncoder(file)
 	err = encoder.Encode(data)
@@ -50,7 +53,6 @@ func (fm FileManager) WriteResult(data interface{}) error {
 		return errors.New("Failed to convert data to JSON.")
 	}
 
-	file.Close()
 	return nil
 }
 
